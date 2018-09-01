@@ -1,0 +1,162 @@
+import PropTypes from 'prop-types';
+import React from 'react';
+import imagesLoaded from 'imagesloaded';
+import Isotope from 'isotope';
+import classNames from 'classnames';
+
+export default class IsotopeContainer extends React.PureComponent {
+  static propTypes = {
+    children: PropTypes.node.isRequired,
+    itemSelector: PropTypes.string.isRequired,
+    masonry: PropTypes.object
+  }
+
+  static defaultProps = {
+    itemSelector: '.collection-container',
+    layoutMode: 'masonry',
+    masonry: {
+      columnWidth: '.grid-sizer',
+      gutter: 10,
+      fitWidth: true
+    },
+    resize: true,
+    stamp: '.stamp',
+    transitionDuration: 0
+  }
+
+  static childContextTypes = {
+    appendToIsotope: PropTypes.func,
+    arrangeIsotope: PropTypes.func,
+    reloadIsotope: PropTypes.func,
+    removeFromIsotope: PropTypes.func,
+    stampToIsotope: PropTypes.func
+  }
+
+  getChildContext() {
+    return {
+      appendToIsotope: this.appendTo,
+      arrangeIsotope: this.arrange,
+      reloadIsotope: this.reload,
+      removeFromIsotope: this.removeFrom,
+      stampToIsotope: this.stampTo
+    };
+  }
+
+  isotopeHandler = null
+  arrangeTimeout = null
+
+  componentDidMount() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', this.arrange);
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
+    }
+  }
+
+  componentWillUnmount() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.arrange);
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+  }
+
+  setContainerNode = (node) => {
+    if (this.container === node) { return; }
+
+    this.container = node;
+
+    if (this.container) {
+      this.isotopeHandler = new Isotope(this.container, this.props);
+      this.isotopeHandler.layout();
+
+      const handler = imagesLoaded(this.container);
+      handler.on('progress', this.arrange);
+      handler.on('always', this.arrange);
+    }
+  }
+
+  onVisibilityChange = () => {
+    if ('visibilityState' in document && document.visibilityState === 'visible') {
+      this.isotopeHandler.reloadItems();
+    }
+  }
+
+  appendTo = (node) => {
+    if (!this.isotopeHandler) {
+      return;
+    }
+
+    if (!node) {
+      return;
+    }
+
+    this.isotopeHandler.appended(node);
+  }
+
+  stampTo = (node) => {
+    this.isotopeHandler.stamp(Array.isArray(node) ? node : [node]);
+  }
+
+  removeFrom = (node) => {
+    if (!this.isotopeHandler) { return; }
+
+    if (!node) {
+      return;
+    }
+
+    try {
+      const item = this.isotopeHandler.getItem(node);
+
+      if (item) {
+        this.isotopeHandler.items.splice(this.isotopeHandler.items.indexOf(item), 1);
+      }
+    } catch (e) { } // eslint-disable-line
+  }
+
+  reload = () => {
+    if (!this.isotopeHandler) { return; }
+
+    try {
+      this.isotopeHandler.reloadItems();
+    } catch (e) { } // eslint-disable-line
+  }
+
+  arrange = (force = false) => {
+    if (!this.isotopeHandler) { return; }
+
+    if (this.arrangeTimeout && !force) {
+      clearTimeout(this.arrangeTimeout);
+    }
+
+    if (force) {
+      this.arrangeOnFrame();
+    } else {
+      this.arrangeTimeout = setTimeout(this.arrangeOnFrame, 5);
+    }
+  }
+
+  arrangeOnFrame = () => {
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(this.onArrangeFrame);
+    } else {
+      this.isotopeHandler.arrange();
+    }
+  }
+
+  onArrangeFrame = () => {
+    this.isotopeHandler.arrange();
+  }
+
+  render() {
+    return (
+      <div className="isotope-container">
+        <div
+          ref={this.setContainerNode}
+          className={classNames(
+            'isotope',
+            this.props.masonry.fitWidth ? 'fit-width' : null
+          )}>
+          {this.props.children}
+        </div>
+      </div>
+    );
+  }

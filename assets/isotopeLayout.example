@@ -1,0 +1,224 @@
+import PropTypes from 'prop-types';
+import React from 'react';
+import { Map } from 'immutable';
+import { connectAdvanced } from 'react-redux';
+import { merge } from '../../Store/helpers';
+import shallowEqual from 'recompose/shallowEqual';
+
+import Advert from './Advert';
+import EmptyState from './EmptyState';
+import Hyperlink from '../Hyperlink';
+import InfiniteScroll from '../InfiniteScroll';
+import IsotopeContainer from '../IsotopeContainer';
+import Item from './Item';
+import Note from '../Note/Preview';
+import Poll from '../Poll/Preview';
+import Tag from '../Tag/Card';
+import User from '../User/Preview';
+import View from '../View';
+import Zine from '../Zine/Preview';
+
+import bindRequestActions from '../../Store/Actions/bind';
+import * as FeedActions from '../../Store/Feed/actions';
+import {
+  getItemsForFeed,
+  isFetchingforKey,
+  hasMoreForKey
+} from '../../Store/Feed/selectors';
+import { isSearchActive } from '../../Store/Search/selectors';
+
+import t from '../../locale';
+import uuid from '../../uuid';
+
+class FeedContainer extends React.PureComponent {
+  static propTypes = {
+    actions: PropTypes.object.isRequired,
+    canFetch: PropTypes.bool,
+    controlAspectRatio: PropTypes.bool.isRequired,
+    children: PropTypes.node,
+    displayFeatures: PropTypes.bool.isRequired,
+    emptyState: PropTypes.node,
+    hasMore: PropTypes.bool,
+    items: PropTypes.array.isRequired,
+    infiniteScrollProps: PropTypes.object,
+    collectionEnd: PropTypes.node,
+    feedKey: PropTypes.any.isRequired,
+    feedItemProps: PropTypes.object,
+    isFetching: PropTypes.bool.isRequired,
+    isotope: PropTypes.object,
+    sources: PropTypes.any.isRequired
+  }
+
+  static defaultProps = {
+    canFetch: true,
+    collectionEnd: (
+      <View className="collection-end">
+        <Hyperlink href={'/needs_help'}>
+        {t('instructions.new_find.description2')}
+        </Hyperlink>
+      </View>
+    ),
+    controlAspectRatio: false,
+    displayFeatures: false,
+    emptyState: (<EmptyState />),
+    isotope: {},
+    isFetching: false,
+    items: [],
+    query: {}
+  }
+
+  static contextTypes = {
+    store: PropTypes.object
+  }
+
+  componentWillMount() {
+    this.onFetch();
+  }
+
+  onFetch = () => {
+    if (
+      this.props.isFetching ||
+      !this.props.hasMore ||
+      !this.props.canFetch
+    ) {
+      return;
+    }
+
+    this.props.actions.fetchFeed();
+  }
+
+  elementCache = {};
+
+  componentFor(item, otherProps) {
+    switch (item.schema) {
+      case 'Note':
+        return <Note noteId={item.id} {...otherProps} enableFeedback={false} />;
+      case 'Poll':
+        return <Poll pollId={item.id} {...otherProps} />;
+      case 'Tag':
+        return <Tag tagName={item.id} {...otherProps} />;
+      case 'User':
+        return <User userId={item.id} {...otherProps} />;
+      case 'Article':
+      case 'Zine':
+        return <Zine zineId={item.id} {...otherProps} />;
+      default:
+        console.warn('Feed Component Type', item.schema, 'not recognized'); // eslint-disable-line
+        break;
+    }
+
+    return null;
+  }
+
+  getItemsAsElements(items) {
+    const { controlAspectRatio, displayFeatures, feedItemProps } = this.props;
+
+    return items.map((item, index) => {
+      if (item.constructor.name === 'AdvertRecord') {
+        return <Advert ad={item} key={'Advert:' + index} />;
+      }
+
+      const component = this.componentFor(item, { controlAspectRatio });
+      const key = `${item.schema}:${item.id}`;
+
+      return (
+        <Item
+          ref={this.onReference}
+          key={key}
+          type={item.schema.toLowerCase()}
+          isFeatured={displayFeatures ? item.featured : false}
+          {...feedItemProps}>
+          {component}
+        </Item>
+      );
+    }).filter(nil => nil);
+  }
+
+  render() {
+    if ((!this.props.hasMore) && !this.props.items.some(v => v) && !this.props.children) {
+      return this.props.emptyState;
+    }
+
+    const collection = (
+      <View className="collection-group">
+        <View className="grid-sizer"></View>
+        {this.props.children}
+        {this.getItemsAsElements(this.props.items)}
+      </View>
+    );
+
+    const layout = this.props.isotope !== null
+      ? (<IsotopeContainer {...this.props.isotope}>{collection}</IsotopeContainer>)
+      : collection;
+
+    return (
+      <View className="feed-container">
+        <InfiniteScroll
+          hasMore={this.props.hasMore}
+          loading={this.props.isFetching}
+          threshold={1000}
+          callback={this.onFetch}
+          {...this.props.infiniteScrollProps}>
+          {layout}
+          {!this.props.hasMore ? this.props.collectionEnd : null}
+        </InfiniteScroll>
+      </View>
+    );
+  }
+}
+
+export const ConnectedFeedContainer =
+  connectAdvanced(dispatch => {
+    let result = {};
+    let feedKey = null;
+
+    const actionCreators = {
+      fetchFeed: FeedActions.FETCH,
+      destroyFeed: FeedActions.DESTROY
+    };
+
+    const actions = bindRequestActions(actionCreators, dispatch);
+    Object.keys(actions).forEach(key => {
+      const oldAction = actions[key];
+      actions[key] = (args) => oldAction.call(null, { feedKey, ...args });
+    });
+
+    return (nextState, nextOwnProps) => {
+      if (!feedKey || ('feedKey' in nextOwnProps && feedKey !== nextOwnProps.feedKey)) {
+        feedKey = 'feedKey' in nextOwnProps ? nextOwnProps.feedKey : uuid();
+      }
+
+      const items = getItemsForFeed(nextState, feedKey);
+      const hasMore = hasMoreForKey(nextState, feedKey);
+      const isFetching = isFetchingforKey(nextState, nextOwnProps.feedKey);
+      const canFetch =
+        'canFetch' in nextOwnProps
+          ? nextOwnProps.canFetch
+          : !isSearchActive(nextState);
+
+      const isotope = [
+        Map({}),
+        IsotopeContainer.defaultProps,
+        nextOwnProps.isotope
+      ].reduce(merge).toJS();
+
+      const nextResult = {
+        ...nextOwnProps,
+        actions,
+        feedKey,
+        canFetch,
+        items,
+        hasMore,
+        isFetching,
+        isotope
+      };
+
+      if (!shallowEqual(result, nextResult)) {
+        result = nextResult;
+      }
+
+      return result;
+    };
+  })(FeedContainer);
+
+export default ConnectedFeedContainer;

@@ -1,0 +1,36 @@
+export default class FeedItem extends React.PureComponent {
+  componentDidMount() {
+    this.context.isotope.appended(this.node);
+    const handler = imagesLoaded(this.node);
+    handler.on('progress', this.context.isotope.arrange);
+    handler.on('always', this.context.isotope.arrange);
+  }
+
+  componentWillUnmount() {
+    this.context.removeFromIsotope(this.node);
+  }
+
+  ...
+}
+
+class Isotope {
+  arrange = function(opts) {
+      // filter
+      var filtered = this._filter(this.items);
+      this.filteredItems = filtered.matches;
+
+      this._sort();
+      this._layout();
+    };
+}
+
+/* Isotope */
+function getStyle( elem ) {
+  var style = getComputedStyle( elem );
+  if ( !style ) {
+    logError( 'Style returned ' + style +
+      '. Are you running this code in a hidden iframe on Firefox? ' +
+      'See https://bit.ly/getsizebug1' );
+  }
+  return style;
+}

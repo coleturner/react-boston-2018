@@ -1,0 +1,59 @@
+import PropTypes from 'prop-types';
+import React from 'react';
+import imagesLoaded from 'imagesloaded';
+import classNames from 'classnames';
+
+export default class FeedItem extends React.PureComponent {
+  static propTypes = {
+    children: PropTypes.node,
+    isFeatured: PropTypes.bool,
+    type: PropTypes.string.isRequired
+  }
+
+  state = {
+    render: true,
+    imagesLoaded: false
+  }
+
+  componentDidMount() {
+    this.context.appendToIsotope(this.node);
+    const handler = imagesLoaded(this.node);
+    handler.on('progress', this.context.arrangeIsotope);
+    handler.on('always', this.context.arrangeIsotope);
+  }
+
+  componentWillUnmount() {
+    this.context.removeFromIsotope(this.node);
+  }
+
+  node = null;
+
+  onReference = (node) => {
+    this.node = node;
+  }
+
+  isInView = (render) => {
+    if (this.node && this.state.render !== render) {
+      const update = { render };
+
+      if (this.state.render) {
+        update.height = this.node.offsetHeight + 0;
+      }
+
+      this.setState(update);
+    }
+  }
+
+  render() {
+    const { children, type, isFeatured, ...otherProps } = this.props;
+    return (
+      <div ref={this.onReference} className={classNames(
+        'collection-container',
+        `type-${type}`,
+        isFeatured ? 'featured' : null
+      )} {...otherProps}>
+        {children}
+      </div>
+    );
+  }
+}
