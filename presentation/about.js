@@ -1,18 +1,6 @@
 import React from "react";
 
-import {
-  Anim,
-  Appear,
-  Fit,
-  Fill,
-  Layout,
-  Heading,
-  ListItem,
-  List,
-  Quote,
-  Slide,
-  Text
-} from "spectacle";
+import { Fit, Fill, Layout, Heading, ListItem, List } from "spectacle";
 
 import Portrait from "./components/portrait";
 import PORTRAIT_PHOTO from "../assets/cole.jpg";
@@ -28,15 +16,9 @@ export default function About() {
           New speaker, who dis?
         </Heading>
         <List size={1} textColor="body">
-          <Appear>
-            <ListItem textColor="#e50914">Acquisition UI @ Netflix</ListItem>
-          </Appear>
-          <Appear>
-            <ListItem>Previously PayPal</ListItem>
-          </Appear>
-          <Appear>
-            <ListItem>Closing Engineer since 2004</ListItem>
-          </Appear>
+          <ListItem textColor="#e50914">Acquisition UI @ Netflix</ListItem>
+          <ListItem>Previously PayPal</ListItem>
+          <ListItem>Copy pasting since 2004</ListItem>
         </List>
       </Fill>
     </Layout>

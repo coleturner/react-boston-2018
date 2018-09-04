@@ -30,17 +30,13 @@ export default function Exposition({ withDefinition }) {
         {!withDefinition && (
           <List>
             <Layout>
-              <Appear>
-                <Fill>
-                  <ListItem>Time to Render</ListItem>
-                </Fill>
-              </Appear>
+              <Fill>
+                <ListItem>Time to Render</ListItem>
+              </Fill>
 
-              <Appear>
-                <Fill>
-                  <ListItem>Time to Interaction</ListItem>
-                </Fill>
-              </Appear>
+              <Fill>
+                <ListItem>Time to Interactive</ListItem>
+              </Fill>
             </Layout>
           </List>
         )}

@@ -144,6 +144,7 @@ export default class Masonry extends React.PureComponent {
 
     this.props.scrollAnchor.addEventListener("scroll", this.onScroll);
     window.addEventListener("resize", this.onResize);
+    this.props.setOnScroll && this.props.setOnScroll(this.onScroll);
   }
 
   componentWillUnmount() {
@@ -199,8 +200,7 @@ export default class Masonry extends React.PureComponent {
       : 0;
 
     // Setup bounds and limiters for deciding how to stage items in a page
-    const itemsPerPage =
-      maxColumns * Math.ceil(viewableHeight / this.state.averageHeight);
+    const itemsPerPage = this.getItemsPerPage({ maxColumns, viewableHeight });
     const top = Math.max(0, this.getScrollTop() + this.getScrollOffset());
 
     // Here we decide if we layout the entire grid or just new items
@@ -406,6 +406,24 @@ export default class Masonry extends React.PureComponent {
       maxColumns
     });
   }
+
+  getItemsPerPage = ({ maxColumns, viewableHeight }) => {
+    if (this.props.maxItemsPerPage) {
+      return this.props.maxItemsPerPage;
+    }
+
+    const $masonryItems = Array.from(
+      document.querySelectorAll(".masonry-page div")
+    );
+
+    const $visibleMasonryItems = $masonryItems.filter(n => {
+      const bounds = n.getBoundingClientRect();
+
+      return bounds.top + bounds.height >= 1 && bounds.top < window.innerHeight;
+    });
+
+    return $visibleMasonryItems.length * 2;
+  };
 
   findPositionForItem(
     previousItems,
@@ -703,7 +721,7 @@ export default class Masonry extends React.PureComponent {
 
     if (
       Math.abs(bounds.top) >
-      minimumColumnHeight - window.innerHeight * this.scrollSpeed
+      minimumColumnHeight - window.innerHeight * (1 + this.scrollSpeed)
     ) {
       this.props.onInfiniteLoad();
       return;

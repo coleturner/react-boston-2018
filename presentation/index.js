@@ -108,15 +108,40 @@ export default class Presentation extends React.Component {
           </Text>
         </Slide>
 
-        <Slide transition={["fade"]} bgColor="stage">
+        <Slide
+          transition={["fade"]}
+          bgColor="stage"
+          notes={`
+        Introduce yourself.<br />
+        <hr />
+        Why are you talking today?<br />
+        <hr />
+        Why should anyone listen?
+
+        `}
+        >
           <About />
         </Slide>
 
-        <Slide transition={["fade"]} bgColor="stage">
+        <Slide
+          transition={["fade"]}
+          bgColor="stage"
+          notes={`
+          What is the problem?
+          <hr />
+          Why does it matter?
+        `}
+        >
           <Exposition withDefinition />
         </Slide>
 
-        <Slide transition={["fade"]} bgColor="stage">
+        <Slide
+          transition={["fade"]}
+          bgColor="stage"
+          notes={`
+          What's most important is getting the user to a state where the page is usable.
+          `}
+        >
           <Exposition />
         </Slide>
         {/* Demonstrating initial design */}
@@ -126,8 +151,16 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           className="full-width-slide"
+          notes={`
+            <h3>Practices</h3>
+            Progressive loading <br />
+            Skeleton UI<br />
+            Code Splitting
+            <hr />
+            Pushing React past the DOM.
+          `}
         >
-          <MasonryExample isFit />
+          <MasonryExample isFit overlayText="How a layout starts..." />
         </Slide>
 
         {/* Demonstrating design bloat */}
@@ -141,7 +174,8 @@ export default class Presentation extends React.Component {
             columns={6}
             canCrash
             nextSlide={7}
-            overlayText="Requirements always change..."
+            initialItemCount={300}
+            overlayText="What actually ships..."
           />
         </Slide>
 
@@ -154,7 +188,12 @@ export default class Presentation extends React.Component {
           <img
             src={CRASH_URL}
             alt="Your browser dun crashed"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "top left"
+            }}
           />
         </Slide>
 

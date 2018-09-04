@@ -1,9 +1,10 @@
 import React from "react";
 import styled from "react-emotion";
-import { GoToAction } from "spectacle";
+import { GoToAction, S } from "spectacle";
 
 import Masonry from "./components/masonry";
 import MasonryItem from "./components/masonry-item";
+import FPS from "./components/fps";
 
 const shuffle = input => {
   let ctr = input.length;
@@ -29,15 +30,14 @@ const Container = styled("div")``;
 
 const OverlayText = styled("div")`
   color: #fff;
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 4em;
   z-index: 2;
   text-transform: uppercase;
-  text-shadow: 0 0 1em #000, 0 3px 0 #dc3000, -1px 3px 0 #dc3000,
-    1px 3px 0 #dc3000;
+  text-shadow: 0 0 10em #000, 0 0 5em #000, 0 0 1em #000, 0 3px 0 #000,
+    -1px 3px 0 #000, 1px 3px 0 #000;
   max-width: 600px;
   pointer-events: none;
   font-family: Oswald, Helvetica, sans-serif;
@@ -50,6 +50,14 @@ export default class MasonryExample extends React.Component {
     initialItemCount: 100
   };
 
+  componentDidMount() {
+    requestAnimationFrame(this.tick);
+  }
+
+  componentWillUnmount() {
+    this.tick = () => {};
+  }
+
   constructor(props) {
     super(props);
     const images = shuffle(Array.from(require("../assets/images.json")));
@@ -60,12 +68,39 @@ export default class MasonryExample extends React.Component {
       );
     }
 
-    this.state = { images, isFit: props.isFit };
+    this.state = { images };
   }
+
+  node = null;
+  slideContent = null;
+
+  tick = () => {
+    if (!this.node) {
+      return;
+    }
+
+    if (!this.slideContent) {
+      return;
+    }
+
+    if (this.slideContent.scrollTop > this.slideContent.scrollHeight) {
+      return;
+    }
+
+    //this.slideContent.scrollTop = this.slideContent.scrollTop + 1;
+    this.slideContent.scrollTo(0, this.slideContent.scrollTop + 3);
+    if (this.onScroll) {
+      this.onScroll();
+    }
+    requestAnimationFrame(this.tick);
+  };
 
   onReference = node => {
     this.node = node;
-    this.forceUpdate();
+
+    if (node) {
+      this.slideContent = node.closest(".spectacle-content");
+    }
   };
 
   isInfiniteLoading = false;
@@ -99,11 +134,9 @@ export default class MasonryExample extends React.Component {
       nextSlide,
       ...otherProps
     } = this.props;
-    const { images, isFit } = this.state;
+    const { images } = this.state;
     const items = images.map(n => ({
-      ...n,
-      isFit,
-      onClick: () => this.setState({ isFit: false })
+      ...n
     }));
 
     const columnGutter = 10;
@@ -126,6 +159,7 @@ export default class MasonryExample extends React.Component {
         {!isCrashed &&
           this.node && (
             <Masonry
+              setOnScroll={onScroll => (this.onScroll = onScroll)}
               scrollAnchor={this.node.parentNode}
               items={items}
               itemComponent={MasonryItem}
@@ -144,7 +178,14 @@ export default class MasonryExample extends React.Component {
             />
           )}
 
-        {overlayText && <OverlayText>{overlayText}</OverlayText>}
+        {overlayText && (
+          <OverlayText>
+            <S textSize={100} type="normal">
+              {overlayText}
+            </S>
+          </OverlayText>
+        )}
+        <FPS />
       </Container>
     );
   }

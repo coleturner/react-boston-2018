@@ -5,6 +5,8 @@ const Container = styled("div")`
   transition: all 150ms ease-in-out;
   transition-property: width, height, transform;
   overflow: hidden;
+  backface-visibility: hidden;
+  perspective: 1000;
 
   &::before {
     background-color: ${({ imageColor }) => imageColor};
@@ -22,14 +24,16 @@ const Container = styled("div")`
     max-width: 100%;
     max-height: 100%;
   }
+`;
 
-  &:hover {
-    overflow: visible;
-    will-change: width, height, transform;
-    z-index: 2;
-    transform: ${({ style: { transform } }) =>
-      `${transform} scale3d(1.05, 1.05, 1.05)`} !important;
-  }
+const FADE_IN = keyframes`
+from {
+  opacity: 0;
+}
+
+to {
+  opacity: 1;
+}
 `;
 
 const Image = styled("div")`
@@ -42,6 +46,8 @@ const Image = styled("div")`
   z-index: 2;
   opacity: 0.85;
   transition: opacity 150ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation: ${FADE_IN} 0.5s 1 ease-in;
+  animation-fill-mode: forwards;
 
   ${({ src }) => `
   background-image: url(${src})
