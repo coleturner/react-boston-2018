@@ -50,6 +50,7 @@
     "express": "^4.16.2",
     "file-loader": "^1.1.5",
     "html-loader": "^0.5.1",
+    "ignore-loader": "^0.1.2",
     "is-buffer": "^1.1.5",
     "markdown-loader": "^2.0.1",
     "node-libs-browser": "^2.0.0",

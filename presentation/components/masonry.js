@@ -100,7 +100,8 @@ const Metrics = styled("div")`
   bottom: 0;
   right: 0;
   background: rgba(0, 0, 0, 0.75);
-  padding: 1em;
+  padding: 0.5em;
+  font-size: 2vw;
 `;
 
 export default class Masonry extends React.PureComponent {
@@ -289,7 +290,6 @@ export default class Masonry extends React.PureComponent {
         // Here is where the magic happens
         // First we take a slice of the items above
         const previousSlicedItems = stagedItems.slice(-1 * (itemsPerPage * 2));
-        console.log(previousSlicedItems.length);
 
         const columnGapValues = Object.values(columnGaps);
 
@@ -307,7 +307,6 @@ export default class Masonry extends React.PureComponent {
         if (positionWithinGap) {
           Object.assign(item, positionWithinGap);
         } else {
-          Object.assign(item, { columnGapValues });
           // And then for good measure, transverse up a little more to catch any items staged below
           stagedItems
             .slice(stagedItems.length - 1 - itemsPerPage, -1 * itemsPerPage)
@@ -360,7 +359,6 @@ export default class Masonry extends React.PureComponent {
                   item.top + item.height + this.props.columnGutter;
 
                 const newGap = [newGapTop, gapHeight - (newGapTop - gapTop)];
-                console.log("new gap", item.column + columnIndex, newGap);
                 return newGap;
               }
 
@@ -369,13 +367,6 @@ export default class Masonry extends React.PureComponent {
 
             // Add a gap if we've created one
             if (item.top > thisColumn) {
-              console.log(
-                index,
-                "created a gap in",
-                item.column + columnIndex,
-                item.top - thisColumn - this.props.columnGutter,
-                { top: item.top, thisColumn }
-              );
               columnGaps[item.column + columnIndex].push([
                 thisColumn,
                 item.top - thisColumn - this.props.columnGutter
@@ -538,14 +529,12 @@ export default class Masonry extends React.PureComponent {
         );
 
         const gap = ~column && gapColumns[column][i];
-        console.log("gap", column, gap);
 
         if (gap) {
           const left = Math.round(
             this.getLeftPositionForColumn(column, viewableStart)
           );
 
-          //console.log("filled by single gap", gapColumns);
           return {
             left,
             top: gap[0],

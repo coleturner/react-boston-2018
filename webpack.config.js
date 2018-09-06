@@ -61,11 +61,6 @@ module.exports = {
         test: /\.mp3$/,
         loader: "file-loader",
         include: path.join(__dirname, "assets")
-      },
-      {
-        test: /\.example$/,
-        loader: "raw-loader",
-        include: path.join(__dirname, "assets")
       }
     ]
   }
