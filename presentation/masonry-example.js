@@ -43,12 +43,35 @@ const OverlayText = styled("div")`
   font-family: Oswald, Helvetica, sans-serif;
 `;
 
+const preloadedImages = {};
+
 export default class MasonryExample extends React.Component {
   static defaultProps = {
     columns: 3,
     maxImages: 500,
     initialItemCount: 100
   };
+
+  constructor(props) {
+    super(props);
+    const images = shuffle(this.getImages());
+
+    images.forEach(({ thumbUrl }) => {
+      if (!(thumbUrl in preloadedImages)) {
+        preloadedImages[thumbUrl] = true;
+        const img = new Image();
+        img.src = thumbUrl;
+      }
+    });
+
+    while (images.length < this.props.initialItemCount) {
+      images.push(
+        ...images.slice(0, this.props.initialItemCount - images.length)
+      );
+    }
+
+    this.state = { images };
+  }
 
   componentDidMount() {
     requestAnimationFrame(this.tick);
@@ -58,17 +81,16 @@ export default class MasonryExample extends React.Component {
     this.tick = () => {};
   }
 
-  constructor(props) {
-    super(props);
-    const images = shuffle(Array.from(require("../assets/images.json")));
-
-    while (images.length < this.props.initialItemCount) {
-      images.push(
-        ...images.slice(0, this.props.initialItemCount - images.length)
-      );
-    }
-
-    this.state = { images };
+  getImages() {
+    return Array.from(require("../assets/images.json")).map(
+      ({ imageUrl, thumbUrl, ...imageProps }) => {
+        return {
+          ...imageProps,
+          imageUrl: require(`../assets/${imageUrl}`),
+          thumbUrl: require(`../assets/${thumbUrl}`)
+        };
+      }
+    );
   }
 
   node = null;
