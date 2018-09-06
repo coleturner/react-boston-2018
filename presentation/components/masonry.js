@@ -60,6 +60,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import throttle from "lodash.throttle";
+import FPS from "./fps";
 
 const noPage = { stop: 0 };
 const defaultColumnSpanSelector = () => 1;
@@ -70,36 +71,36 @@ const classNamePropType = PropTypes.oneOfType([
   PropTypes.array
 ]).isRequired;
 
-const ItemCount = styled("div")`
-  background: rgba(0, 0, 0, 0.85);
-  border-radius: 10em;
-  padding: 0.5em;
-  position: absolute;
-  right: 1em;
-  bottom: 1em;
-  transform: ${({ number }) => {
-    const x = Math.min(2, Math.max(number / 100));
-
-    return `scale3d(${x}, ${x}) translate(-50%, -50%)`;
-  }}};
-  z-index: 2;
-  width: 5em;
-  height: 5em;
+const Metric = styled("div")`
   text-transform: uppsercase;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  align-content: center;
   pointer-events: none;
-  color: #ffed58;
+  color: ${({ color }) => color || "#ffed58"};
+
+  > * {
+    flex: 0 1 50%;
+    text-align: center;
+  }
 
   em {
     display: block;
     color: #fff;
-    font-size: 1.5em;
     line-height: 1;
     font-style: normal;
+    min-width: 3em;
   }
+`;
+
+const Metrics = styled("div")`
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 1em;
 `;
 
 export default class Masonry extends React.PureComponent {
@@ -136,7 +137,7 @@ export default class Masonry extends React.PureComponent {
     isLoading: false
   };
 
-  state = { averageHeight: 300, pages: [] };
+  state = { averageHeight: 300, pages: [], nodes: 0 };
 
   componentDidMount() {
     this.layout(this.props);
@@ -160,6 +161,11 @@ export default class Masonry extends React.PureComponent {
     if (this.props.scrollAnchor !== prevProps.scrollAnchor) {
       prevProps.scrollAnchor.removeEventListener("scroll", this.onScroll);
       this.props.scrollAnchor.addEventListener("scroll", this.onScroll);
+    }
+
+    const nodes = Array.from(this.node.querySelectorAll("*")).length;
+    if (this.nodesRef) {
+      this.nodesRef.innerText = nodes;
     }
 
     this.onScroll();
@@ -253,13 +259,15 @@ export default class Masonry extends React.PureComponent {
         }
 
         // Determine the height of this item to stage
-        const height = heightSelector({
-          getState,
-          props: itemProps,
-          columnSpan,
-          columnGutter,
-          columnWidth
-        });
+        const height = Math.round(
+          heightSelector({
+            getState,
+            props: itemProps,
+            columnSpan,
+            columnGutter,
+            columnWidth
+          })
+        );
 
         if (isNaN(height)) {
           console.warn(
@@ -281,6 +289,7 @@ export default class Masonry extends React.PureComponent {
         // Here is where the magic happens
         // First we take a slice of the items above
         const previousSlicedItems = stagedItems.slice(-1 * (itemsPerPage * 2));
+        console.log(previousSlicedItems.length);
 
         const columnGapValues = Object.values(columnGaps);
 
@@ -298,6 +307,7 @@ export default class Masonry extends React.PureComponent {
         if (positionWithinGap) {
           Object.assign(item, positionWithinGap);
         } else {
+          Object.assign(item, { columnGapValues });
           // And then for good measure, transverse up a little more to catch any items staged below
           stagedItems
             .slice(stagedItems.length - 1 - itemsPerPage, -1 * itemsPerPage)
@@ -333,11 +343,11 @@ export default class Masonry extends React.PureComponent {
 
         columnHeights
           .slice(item.column, item.column + columnSpan)
-          .forEach((thisColumn, index) => {
+          .forEach((thisColumn, columnIndex) => {
             // Remove any gaps we're overlaying
-            columnGaps[item.column + index] = columnGaps[
-              item.column + index
-            ].filter(gap => {
+            columnGaps[item.column + columnIndex] = columnGaps[
+              item.column + columnIndex
+            ].map(gap => {
               const [gapTop, gapHeight] = gap;
               if (
                 // If we filled the gap
@@ -346,21 +356,33 @@ export default class Masonry extends React.PureComponent {
                 // or if the gap is above our fill zone
                 gapTop < minPreviousSlicedItemTop
               ) {
-                return false;
+                const newGapTop =
+                  item.top + item.height + this.props.columnGutter;
+
+                const newGap = [newGapTop, gapHeight - (newGapTop - gapTop)];
+                console.log("new gap", item.column + columnIndex, newGap);
+                return newGap;
               }
 
-              return true;
+              return gap;
             });
 
             // Add a gap if we've created one
             if (item.top > thisColumn) {
-              columnGaps[item.column + index].push([
+              console.log(
+                index,
+                "created a gap in",
+                item.column + columnIndex,
+                item.top - thisColumn - this.props.columnGutter,
+                { top: item.top, thisColumn }
+              );
+              columnGaps[item.column + columnIndex].push([
                 thisColumn,
                 item.top - thisColumn - this.props.columnGutter
               ]);
             }
 
-            columnHeights[item.column + index] = Math.max(
+            columnHeights[item.column + columnIndex] = Math.max(
               thisColumn,
               item.top + item.height + columnGutter
             );
@@ -445,7 +467,9 @@ export default class Masonry extends React.PureComponent {
       return {
         column,
         left,
-        top
+        top,
+        filledInShortestColumn: true,
+        columnHeights
       };
     }
 
@@ -469,9 +493,15 @@ export default class Masonry extends React.PureComponent {
         return gapReduction;
       }, []);
 
-    const column = columnGaps.indexOf(
-      columnGaps.slice(0).sort(sortAscending)[0]
-    );
+    let column = columnGaps.indexOf(columnGaps.slice(0).sort(sortAscending)[0]);
+
+    if (
+      column === previousItems[previousItems.length - 1].column &&
+      column === previousItems[previousItems.length - 2].column
+    ) {
+      column++;
+    }
+
     const maxSpannedHeight = Math.max(
       ...columnHeights.slice(column, column + columnSpan)
     );
@@ -483,7 +513,8 @@ export default class Masonry extends React.PureComponent {
     return {
       column,
       left,
-      top
+      top,
+      filledToMinimizeGap: true
     };
   }
 
@@ -499,9 +530,15 @@ export default class Masonry extends React.PureComponent {
     if (columnSpan === 1) {
       // Easy, find the first gap
 
-      for (let column = 0; column < gapColumns.length; column++) {
-        const testColumn = gapColumns[column];
-        const gap = testColumn.find(g => g[1] >= height);
+      const maxGapColumnCount = Math.max(...gapColumns.map(n => n.length));
+
+      for (let i = 0; i < maxGapColumnCount; i++) {
+        const column = gapColumns.findIndex(
+          gaps => gaps[i] && gaps[i][1] >= height
+        );
+
+        const gap = ~column && gapColumns[column][i];
+        console.log("gap", column, gap);
 
         if (gap) {
           const left = Math.round(
@@ -512,13 +549,14 @@ export default class Masonry extends React.PureComponent {
           return {
             left,
             top: gap[0],
-            column
+            column,
+            filledByFirstGap: true
           };
         }
       }
     }
 
-    if (columnSpan > 1 && !gapColumns.some(column => column.length > 0)) {
+    if (columnSpan > 1 && gapColumns.every(column => column.length <= 0)) {
       // If there are no gaps, see if we can lay it out evenly
       const spannableColumnHeights = columnHeights.slice(
         0,
@@ -550,7 +588,8 @@ export default class Masonry extends React.PureComponent {
         return {
           left,
           top: gap[0],
-          column
+          column,
+          filledByEvenSpan: true
         };
       }
     }
@@ -583,7 +622,6 @@ export default class Masonry extends React.PureComponent {
                 nextSpannableColumnGapHeight
               ] = nextSpannableColumnGap;
 
-              // only if it can slide right in there ;)
               return (
                 nextSpannableColumnGapTop <= thisColumnGapTop &&
                 nextSpannableColumnGapTop + nextSpannableColumnGapHeight >=
@@ -598,7 +636,6 @@ export default class Masonry extends React.PureComponent {
       new Array(fillableColumnGaps.length).fill([])
     );
 
-    // Now interate through the message
     for (let column = 0; column < spannableColumnGaps.length; column++) {
       if (spannableColumnGaps[column].length) {
         const gap = spannableColumnGaps[column][0];
@@ -609,7 +646,8 @@ export default class Masonry extends React.PureComponent {
         return {
           left,
           top: gap[0],
-          column
+          column,
+          filledSpanning: true
         };
       }
     }
@@ -800,7 +838,15 @@ export default class Masonry extends React.PureComponent {
               >
                 {page.items.map(
                   (
-                    { props, left, top, width, height, columnSpan },
+                    {
+                      props,
+                      left,
+                      top,
+                      width,
+                      height,
+                      columnSpan,
+                      ...otherProps
+                    },
                     itemIndex
                   ) => {
                     return (
@@ -814,6 +860,7 @@ export default class Masonry extends React.PureComponent {
                           height: height + "px"
                         }}
                         {...props}
+                        {...otherProps}
                       />
                     );
                   }
@@ -822,12 +869,21 @@ export default class Masonry extends React.PureComponent {
             );
           })}
         </div>
-        <ItemCount number={this.props.items.length}>
-          <div>
-            <em>{this.props.items.length}</em>
-            ITEMS
-          </div>
-        </ItemCount>
+        <Metrics>
+          <Metric>
+            <em ref={node => (this.nodesRef = node)}>{this.state.nodes}</em>
+            <span>Nodes</span>
+          </Metric>
+
+          <FPS>
+            {fps => (
+              <Metric>
+                <em>{fps}</em>
+                <span>FPS</span>
+              </Metric>
+            )}
+          </FPS>
+        </Metrics>
         {hasMore && isLoading && loadingElement}
         {isDone && (
           <footer

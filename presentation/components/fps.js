@@ -5,14 +5,6 @@ import throttle from "lodash.throttle";
 import styled from "react-emotion";
 
 const Counter = styled("div")`
-  background: rgba(0, 0, 0, 0.85);
-  border-radius: 10em;
-  padding: 0.5em;
-  position: absolute;
-  right: 1em;
-  top: 1em;
-  width: 4em;
-  height: 4em;
   text-align: center;
   z-index: 5;
 
@@ -60,6 +52,12 @@ export default class FPS extends React.Component {
   render() {
     if (!this.fps) {
       return null;
+    }
+
+    const { children } = this.props;
+
+    if (children) {
+      return children(this.fps);
     }
 
     return (

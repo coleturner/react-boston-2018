@@ -4,7 +4,6 @@ import { GoToAction, S } from "spectacle";
 
 import Masonry from "./components/masonry";
 import MasonryItem from "./components/masonry-item";
-import FPS from "./components/fps";
 
 const shuffle = input => {
   let ctr = input.length;
@@ -74,7 +73,9 @@ export default class MasonryExample extends React.Component {
   }
 
   componentDidMount() {
-    requestAnimationFrame(this.tick);
+    if (this.props.autoscroll) {
+      requestAnimationFrame(this.tick);
+    }
   }
 
   componentWillUnmount() {
@@ -207,7 +208,6 @@ export default class MasonryExample extends React.Component {
             </S>
           </OverlayText>
         )}
-        <FPS />
       </Container>
     );
   }

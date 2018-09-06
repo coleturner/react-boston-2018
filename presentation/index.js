@@ -26,7 +26,7 @@ import MasonryExample from "./masonry-example";
 
 import CRASH_URL from "../assets/crash.png";
 
-import { injectGlobal } from "react-emotion";
+import styled, { injectGlobal } from "react-emotion";
 
 // Require CSS
 require("normalize.css");
@@ -160,7 +160,7 @@ export default class Presentation extends React.Component {
             Pushing React past the DOM.
           `}
         >
-          <MasonryExample isFit overlayText="How a layout starts..." />
+          <MasonryExample isFit threshold={100000000} />
         </Slide>
 
         {/* Demonstrating design bloat */}
@@ -172,10 +172,9 @@ export default class Presentation extends React.Component {
         >
           <MasonryExample
             columns={6}
-            canCrash
             nextSlide={7}
-            initialItemCount={300}
-            overlayText="What actually ships..."
+            initialItemCount={500}
+            threshold={100000000}
           />
         </Slide>
 
