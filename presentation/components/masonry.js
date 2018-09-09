@@ -164,17 +164,23 @@ export default class Masonry extends React.PureComponent {
       this.props.scrollAnchor.addEventListener("scroll", this.onScroll);
     }
 
-    const nodes = Array.from(this.node.querySelectorAll("*")).length;
-    if (this.nodesRef) {
-      this.nodesRef.innerText = nodes;
-    }
+    requestAnimationFrame(() => {
+      const nodes = Array.from(this.node.querySelectorAll("*")).length;
+      this.setNodeCount(nodes);
+    });
 
     this.onScroll();
   }
 
+  setNodeCount = throttle(nodes => {
+    if (this.nodesRef) {
+      this.nodesRef.innerText = nodes;
+    }
+  }, 150);
+
   onResize = throttle(() => {
     this.layout(this.props, true);
-  }, 150);
+  }, 500);
 
   layout(props, rearrange = false) {
     if (!this.node) {
@@ -435,7 +441,7 @@ export default class Masonry extends React.PureComponent {
       return bounds.top + bounds.height >= 1 && bounds.top < window.innerHeight;
     });
 
-    return $visibleMasonryItems.length * 2;
+    return Math.max(maxColumns, $visibleMasonryItems.length);
   };
 
   findPositionForItem(
@@ -487,6 +493,8 @@ export default class Masonry extends React.PureComponent {
     let column = columnGaps.indexOf(columnGaps.slice(0).sort(sortAscending)[0]);
 
     if (
+      previousItems[previousItems.length - 1] &&
+      previousItems[previousItems.length - 2] &&
       column === previousItems[previousItems.length - 1].column &&
       column === previousItems[previousItems.length - 2].column
     ) {
@@ -859,6 +867,10 @@ export default class Masonry extends React.PureComponent {
           })}
         </div>
         <Metrics>
+          <Metric>
+            <em>{this.props.items.length}</em>
+            <span>Items</span>
+          </Metric>
           <Metric>
             <em ref={node => (this.nodesRef = node)}>{this.state.nodes}</em>
             <span>Nodes</span>

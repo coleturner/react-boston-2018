@@ -7,6 +7,14 @@
     "imageColor": "#EA301F"
   },
   {
+    "imageUrl": "36.jpg",
+    "thumbUrl": "36.thumb.jpg",
+    "imageWidth": 3024,
+    "imageHeight": 4032,
+    "imageColor": "#1F1B2C",
+    "featured": true
+  },
+  {
     "imageUrl": "1.jpg",
     "thumbUrl": "1.thumb.jpg",
     "imageWidth": 2848,
@@ -250,13 +258,6 @@
     "imageWidth": 6000,
     "imageHeight": 4000,
     "imageColor": "#845F43"
-  },
-  {
-    "imageUrl": "36.jpg",
-    "thumbUrl": "36.thumb.jpg",
-    "imageWidth": 5079,
-    "imageHeight": 3480,
-    "imageColor": "#1F1B2C"
   },
   {
     "imageUrl": "37.jpg",

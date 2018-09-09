@@ -144,24 +144,6 @@ export default class Presentation extends React.Component {
         >
           <Exposition />
         </Slide>
-        {/* Demonstrating initial design */}
-
-        <Slide
-          maxHeight={1400}
-          transition={["fade"]}
-          bgColor="stage"
-          className="full-width-slide"
-          notes={`
-            <h3>Practices</h3>
-            Progressive loading <br />
-            Skeleton UI<br />
-            Code Splitting
-            <hr />
-            Pushing React past the DOM.
-          `}
-        >
-          <MasonryExample isFit threshold={100000000} />
-        </Slide>
 
         {/* Demonstrating design bloat */}
         <Slide
@@ -171,7 +153,7 @@ export default class Presentation extends React.Component {
           className="full-width-slide"
         >
           <MasonryExample
-            columns={6}
+            columns={8}
             nextSlide={7}
             initialItemCount={500}
             threshold={100000000}
@@ -191,9 +173,40 @@ export default class Presentation extends React.Component {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: "top left"
+              objectPosition: "center center"
             }}
           />
+        </Slide>
+
+        <Slide
+          transition={["fade"]}
+          bgColor="stage"
+          className="full-width-slide"
+        >
+          <div>
+            <img
+              src={require("../assets/renderingTab.png")}
+              alt="Chrome Rendering Tab"
+              style={{
+                maxWidth: "900px"
+              }}
+            />
+          </div>
+          <div>
+            <img
+              src={require("../assets/layersTab.png")}
+              alt="Chrome Layer Tab"
+              style={{
+                maxWidth: "900px"
+              }}
+            />
+          </div>
+          <div>
+            <img
+              src={require("../assets/recalcStyle.png")}
+              alt="Recalculate Style Warning"
+            />
+          </div>
         </Slide>
 
         <CodeSlide
@@ -229,13 +242,6 @@ export default class Presentation extends React.Component {
             // ...
           ]}
         />
-
-        {/* Talk about how to identify bottlenecks */}
-        {/* Identify value, goal, and desired outcome */}
-
-        <Slide transition={["fade"]} bgColor="primary">
-          <Heading>Why?</Heading>
-        </Slide>
 
         <Slide transition={["fade"]} bgColor="primary" textColor="body">
           <Bottlenecks index={0} />
@@ -287,11 +293,16 @@ export default class Presentation extends React.Component {
               </a>
             </ListItem>
             <ListItem>
+              <a target="_blank" href="https://csstriggers.com/">
+                CSS Triggers
+              </a>
+            </ListItem>
+            <ListItem>
               <a
                 target="_blank"
-                href="https://github.com/maicki/why-did-you-update"
+                href="https://developers.google.com/web/fundamentals/performance/rendering/avoid-large-complex-layouts-and-layout-thrashing#avoid-forced-synchronous-layouts"
               >
-                Why Did You Update?
+                Avoid Large Complex Layouts & Layout Thrashing...
               </a>
             </ListItem>
             <ListItem>
@@ -306,24 +317,25 @@ export default class Presentation extends React.Component {
         </Slide>
 
         <Slide transition={["fade"]} bgColor="focus">
-          <Heading size={1} fit caps textColor="primary">
+          <Heading caps size={1} fit textColor="primary">
             The End
           </Heading>
           <hr />
-          <Text
-            margin="10px 0 0"
-            textColor="subtitle"
-            textSize="0.85em"
-            bold
-            caps
-          >
-            <Heading textColor="subtitle" lineHeight={1.2} fit>
+          <Text margin="10px 0 0" textColor="subtitle" textSize="0.85em" bold>
+            <Heading caps textColor="subtitle" lineHeight={1.2} fit>
               For more pictures of dogs
             </Heading>
-            <Heading textColor="subtitle" lineHeight={1.2} fit>
-              And ocassionally a tweet about JavaScript
+            <Heading caps textColor="subtitle" lineHeight={1.2} fit>
+              And ocassional tweets about JavaScript
             </Heading>
-            <Heading textColor="twitter" lineHeight={1} type="bold" fit>
+            <Heading
+              caps
+              fontFamily={"secondary"}
+              textColor="twitter"
+              lineHeight={1}
+              type="bold"
+              fit
+            >
               Follow @coleturner
             </Heading>
           </Text>

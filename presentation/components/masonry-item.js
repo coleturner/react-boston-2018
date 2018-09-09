@@ -44,23 +44,27 @@ const Image = styled("div")`
   background-position: center center;
   background-size: cover;
   z-index: 2;
-  opacity: 0.85;
+  opacity: 0;
   transition: opacity 150ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  animation: ${FADE_IN} 0.5s 1 ease-in;
+  animation: ${FADE_IN} 1s 1 ease-in;
   animation-fill-mode: forwards;
 
   ${({ src }) => `
   background-image: url(${src})
   `};
-
-  div:hover > & {
-    opacity: 1;
-  }
 `;
 
 export default class MasonryItem extends React.Component {
-  static getColumnSpanFromProps = ({ index, maxColumns }) => {
-    if (maxColumns > 3 && index > 0 && index % 24 === 0) {
+  static getColumnSpanFromProps = ({
+    props: { featured },
+    index,
+    maxColumns
+  }) => {
+    if (featured) {
+      return 3;
+    }
+
+    if (maxColumns > 3 && index > 0 && index % 9 === 0) {
       return 3;
     }
 
