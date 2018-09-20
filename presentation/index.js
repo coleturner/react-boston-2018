@@ -127,9 +127,9 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           notes={`
-          What is the problem?
-          <hr />
-          Why does it matter?
+          The word observed is important.
+          <br/>
+          Developers have powerful machines. We see the web as we designed it.
         `}
         >
           <Exposition withDefinition />
@@ -139,7 +139,10 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           notes={`
-          What's most important is getting the user to a state where the page is usable.
+          How quickly can we surface what's available?
+          How quickly can the user interact?
+          <br />
+          A website that takes longer than 4 seconds to render is like a screen door on a submarine.
           `}
         >
           <Exposition />
@@ -151,6 +154,10 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           className="full-width-slide"
+          notes={`
+          Needed to render many items with different sizes. Use infinite scroll to keep the user hooked.
+          Our observations in development were smooth.
+          `}
         >
           <MasonryExample
             columns={8}
@@ -165,6 +172,9 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           className="full-width-slide"
+          notes={`
+            In production our users observed their browsers crashing after a couple pages. If your website crashes, that's game over.
+          `}
         >
           <img
             src={CRASH_URL}
@@ -182,6 +192,9 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           className="full-width-slide"
+          notes={`
+          Lucky at the time Chrome had plenty of tools to debug performance.
+          `}
         >
           <div>
             <img
@@ -243,19 +256,60 @@ export default class Presentation extends React.Component {
           ]}
         />
 
-        <Slide transition={["fade"]} bgColor="primary" textColor="body">
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+          The library we were using had a cascading bottlenecks.
+          Excessive DOM mutations because dynamic positioning.
+          Dynamic positioning because variable element sizes.
+          But we also abused it by rendering everything.
+        `}
+        >
           <Bottlenecks index={0} />
         </Slide>
-        <Slide transition={["fade"]} bgColor="primary" textColor="body">
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+          To fix the layout thrashing I needed to reduce the number of DOM mutations
+          `}
+        >
           <Bottlenecks index={1} />
         </Slide>
-        <Slide transition={["fade"]} bgColor="primary" textColor="body">
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+          But to do that, the elements have to be positioned absolutely and calculated before they render.
+          `}
+        >
           <Bottlenecks index={2} />
         </Slide>
-        <Slide transition={["fade"]} bgColor="primary" textColor="body">
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+          Which meant I needed to know the width and height beforehand. So we set static column widths and calculated the height from the image's aspect ratio.
+          But that was only enough to delay the crashing. After so many thousand DOM nodes the browser will lock up and the page will still crash.
+          `}
+        >
           <Bottlenecks index={3} />
         </Slide>
-        <Slide transition={["fade"]} bgColor="primary" textColor="body">
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+          
+            The answer was virtual rendering. Instead of rendering all the items on the page, we would render only what's visible in the viewport to drastically cut down the number of DOM nodes.
+
+          `}
+        >
           <Bottlenecks index={4} />
         </Slide>
 
@@ -265,6 +319,11 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           className="full-width-slide"
+          notes={`
+          
+          This way our users could observe the same beautiful experience as we designed it, whether they had a desktop, tablet or mobile device.
+
+        `}
         >
           <MasonryExample
             maxColumns={8}

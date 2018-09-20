@@ -22,6 +22,18 @@ export default function Bottlenecks({ index = 0 }) {
             {index > 1 ? (
               <ListItem>
                 <S type="italic" textColor="focus">
+                  Absolute
+                </S>{" "}
+                positioning
+              </ListItem>
+            ) : (
+              <ListItem>Dynamic positioning</ListItem>
+            )}
+          </Fill>
+          <Fill>
+            {index > 2 ? (
+              <ListItem>
+                <S type="italic" textColor="focus">
                   Fixed
                 </S>{" "}
                 element sizing
@@ -29,9 +41,7 @@ export default function Bottlenecks({ index = 0 }) {
             ) : (
               <ListItem>Variable element sizing</ListItem>
             )}
-          </Fill>
-          <Fill>
-            {index > 2 ? (
+            {index > 3 ? (
               <ListItem>
                 <S type="italic" textColor="focus">
                   Virtual
@@ -40,16 +50,6 @@ export default function Bottlenecks({ index = 0 }) {
               </ListItem>
             ) : (
               <ListItem>Render Everything</ListItem>
-            )}
-            {index > 3 ? (
-              <ListItem>
-                <S type="italic" textColor="focus">
-                  Static
-                </S>{" "}
-                arrangement
-              </ListItem>
-            ) : (
-              <ListItem>Dynamic arrangement</ListItem>
             )}
           </Fill>
         </Layout>
