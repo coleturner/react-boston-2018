@@ -97,11 +97,13 @@ const Metric = styled("div")`
 
 const Metrics = styled("div")`
   position: absolute;
-  bottom: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.75);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
   padding: 0.5em;
-  font-size: 2vw;
+  font-size: 3vw;
+  font-size: 3vmax;
 `;
 
 export default class Masonry extends React.PureComponent {
@@ -876,14 +878,14 @@ export default class Masonry extends React.PureComponent {
             <span>Nodes</span>
           </Metric>
 
-          <FPS>
+          {/* <FPS>
             {fps => (
               <Metric>
                 <em>{fps}</em>
                 <span>FPS</span>
               </Metric>
             )}
-          </FPS>
+          </FPS> */}
         </Metrics>
         {hasMore && isLoading && loadingElement}
         {isDone && (

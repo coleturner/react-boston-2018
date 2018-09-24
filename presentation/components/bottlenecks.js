@@ -6,7 +6,7 @@ export default function Bottlenecks({ index = 0 }) {
   return (
     <div>
       <Heading textColor="focus" size={2}>
-        Bottlenecks
+        Layout Pitfalls
       </Heading>
       <List>
         <Layout>

@@ -12,8 +12,9 @@ export default function About() {
         <Portrait src={PORTRAIT_PHOTO} style={{ marginRight: "3em" }} />
       </Fit>
       <Fill>
-        <Heading size={6} textColor="secondary" caps>
-          New speaker, who dis?
+        <Heading size={1} textColor="focus" fit textFont="secondary">
+          <span style={{ position: "relative", top: "1px" }}>@</span>
+          coleturner
         </Heading>
         <List size={1} textColor="body">
           <ListItem textColor="#e50914">Acquisition UI @ Netflix</ListItem>
