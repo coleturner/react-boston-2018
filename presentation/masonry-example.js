@@ -25,21 +25,18 @@ const shuffle = input => {
   return arra1;
 };
 
-const Container = styled("div")``;
+const Container = styled("div")`
+  ${({ fakeViewport }) => `padding: 0 ${fakeViewport}px;`};
+`;
 
-const OverlayText = styled("div")`
-  color: #fff;
+const FakeViewport = styled("div")`
+  border: ${({ size }) => size}px solid rgba(0, 0, 0, 0.65);
+  box-shadow: inset 0 0 0 3px #fff;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  text-transform: uppercase;
-  text-shadow: 0 0 10em #000, 0 0 5em #000, 0 0 1em #000, 0 3px 0 #000,
-    -1px 3px 0 #000, 1px 3px 0 #000;
-  max-width: 600px;
-  pointer-events: none;
-  font-family: Oswald, Helvetica, sans-serif;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 `;
 
 const preloadedImages = {};
@@ -48,7 +45,8 @@ export default class MasonryExample extends React.Component {
   static defaultProps = {
     columns: 3,
     maxImages: 500,
-    initialItemCount: 100
+    initialItemCount: 100,
+    shouldSpanColumns: true
   };
 
   constructor(props) {
@@ -76,9 +74,17 @@ export default class MasonryExample extends React.Component {
     if (this.props.autoscroll) {
       requestAnimationFrame(this.tick);
     }
+
+    document.addEventListener("scroll", this.onDocumentScroll);
   }
 
+  lastScroll = null;
+  onDocumentScroll = () => {
+    this.lastScroll = new Date();
+  };
+
   componentWillUnmount() {
+    this.node = null;
     this.tick = () => {};
   }
 
@@ -110,11 +116,17 @@ export default class MasonryExample extends React.Component {
       return;
     }
 
+    if (new Date() - this.lastScroll < 500) {
+      requestAnimationFrame(this.tick);
+      return;
+    }
+
     //this.slideContent.scrollTop = this.slideContent.scrollTop + 1;
-    this.slideContent.scrollTo(0, this.slideContent.scrollTop + 3);
+    this.slideContent.scrollTo(0, this.slideContent.scrollTop + 1);
     if (this.onScroll) {
       this.onScroll();
     }
+
     requestAnimationFrame(this.tick);
   };
 
@@ -155,10 +167,14 @@ export default class MasonryExample extends React.Component {
       columns,
       canCrash,
       nextSlide,
+      shouldSpanColumns,
+      fakeViewport,
       ...otherProps
     } = this.props;
     const { images } = this.state;
-    const items = images.map(n => ({
+    const items = images.map((n, i) => ({
+      shouldSpanColumns: this.props.shouldSpanColumns,
+      itemId: i,
       ...n
     }));
 
@@ -170,7 +186,7 @@ export default class MasonryExample extends React.Component {
     const isCrashed = canCrash && images.length > this.props.maxImages;
 
     return (
-      <Container innerRef={this.onReference}>
+      <Container fakeViewport={fakeViewport} innerRef={this.onReference}>
         {isCrashed && (
           <GoToAction
             render={goToSlide => {
@@ -197,16 +213,14 @@ export default class MasonryExample extends React.Component {
               getState={() => ({})}
               alignCenter
               hasMore
+              showMetrics={this.props.showMetrics}
+              fakeViewport={fakeViewport}
               {...otherProps}
             />
           )}
 
-        {overlayText && (
-          <OverlayText>
-            <S textSize={100} type="normal">
-              {overlayText}
-            </S>
-          </OverlayText>
+        {fakeViewport && (
+          <FakeViewport size={fakeViewport}>&nbsp;</FakeViewport>
         )}
       </Container>
     );

@@ -152,6 +152,7 @@ export default class Masonry extends React.PureComponent {
   }
 
   componentWillUnmount() {
+    this.node = null;
     this.props.scrollAnchor.removeEventListener("scroll", this.onScroll);
     window.removeEventListener("resize", this.onResize);
   }
@@ -166,18 +167,31 @@ export default class Masonry extends React.PureComponent {
       this.props.scrollAnchor.addEventListener("scroll", this.onScroll);
     }
 
-    requestAnimationFrame(() => {
-      const nodes = Array.from(this.node.querySelectorAll("*")).length;
-      this.setNodeCount(nodes);
-    });
-
     this.onScroll();
   }
 
+  calculateNodes = () => {
+    requestAnimationFrame(() => {
+      const nodes = Array.from(this.node.querySelectorAll("div")).length;
+      this.setNodeCount(nodes);
+    });
+  };
+
   setNodeCount = throttle(nodes => {
-    if (this.nodesRef) {
-      this.nodesRef.innerText = nodes;
-    }
+    requestAnimationFrame(() => {
+      if (this.nodesRef) {
+        this.nodesRef.innerText = nodes;
+      }
+
+      if (this.scaleRef) {
+        const itemsPerPage = this.getItemsPerPage({
+          maxColumns: this.state.maxColumns,
+          viewableHeight: this.state.viewableHeight
+        });
+
+        this.scaleRef.innerText = itemsPerPage;
+      }
+    });
   }, 150);
 
   onResize = throttle(() => {
@@ -215,7 +229,8 @@ export default class Masonry extends React.PureComponent {
       : 0;
 
     // Setup bounds and limiters for deciding how to stage items in a page
-    const itemsPerPage = this.getItemsPerPage({ maxColumns, viewableHeight });
+    const itemsPerPage =
+      maxColumns || this.getItemsPerPage({ maxColumns, viewableHeight });
     const top = Math.max(0, this.getScrollTop() + this.getScrollOffset());
 
     // Here we decide if we layout the entire grid or just new items
@@ -429,12 +444,8 @@ export default class Masonry extends React.PureComponent {
   }
 
   getItemsPerPage = ({ maxColumns, viewableHeight }) => {
-    if (this.props.maxItemsPerPage) {
-      return this.props.maxItemsPerPage;
-    }
-
     const $masonryItems = Array.from(
-      document.querySelectorAll(".masonry-page div")
+      document.querySelectorAll(".masonry-page > div")
     );
 
     const $visibleMasonryItems = $masonryItems.filter(n => {
@@ -693,6 +704,7 @@ export default class Masonry extends React.PureComponent {
     const bounds = this.node.getBoundingClientRect();
     this.checkScroll(bounds);
     this.checkInfiniteLoad(bounds);
+    this.calculateNodes();
   };
 
   checkScroll = throttle(bounds => {
@@ -728,6 +740,7 @@ export default class Masonry extends React.PureComponent {
   isPageVisible({ page, top, viewableHeight }) {
     const { start, stop } = page;
     const extraThreshold = this.getThreshold() * Math.abs(this.scrollSpeed);
+    console.log("extraThreshold", extraThreshold);
 
     const startsBeforeViewableArea = start <= top + extraThreshold;
     const stopsAfterViewableArea = stop > top + viewableHeight + extraThreshold;
@@ -806,7 +819,9 @@ export default class Masonry extends React.PureComponent {
       loadingElement,
       isLoading,
       itemProps,
-      itemComponent: Item
+      itemComponent: Item,
+      showMetrics,
+      fakeViewport
     } = this.props;
 
     const { pages } = this.state;
@@ -818,6 +833,9 @@ export default class Masonry extends React.PureComponent {
     if (isDone) {
       layoutHeight + 50;
     }
+
+    const scrollTop = this.props.fakeViewport && this.getScrollTop();
+    const viewableHeight = this.props.fakeViewport && this.getViewableHeight();
 
     return (
       <div ref={this.onReference} className={classNames(containerClassName)}>
@@ -832,8 +850,8 @@ export default class Masonry extends React.PureComponent {
             return (
               <div
                 className={classNames(pageClassName)}
-                data-id={index}
-                key={index}
+                key={page.index}
+                data-id={page.index}
               >
                 {page.items.map(
                   (
@@ -850,7 +868,7 @@ export default class Masonry extends React.PureComponent {
                   ) => {
                     return (
                       <Item
-                        key={itemIndex}
+                        key={`${page.index}-${itemIndex}`}
                         columnSpan={columnSpan}
                         style={{
                           position: "absolute",
@@ -860,6 +878,12 @@ export default class Masonry extends React.PureComponent {
                         }}
                         {...props}
                         {...otherProps}
+                        isOutOfViewport={
+                          fakeViewport &&
+                          (top + height < scrollTop + fakeViewport ||
+                            top >
+                              scrollTop + viewableHeight - (fakeViewport / 2))
+                        }
                       />
                     );
                   }
@@ -868,17 +892,22 @@ export default class Masonry extends React.PureComponent {
             );
           })}
         </div>
-        <Metrics>
-          <Metric>
-            <em>{this.props.items.length}</em>
-            <span>Items</span>
-          </Metric>
-          <Metric>
-            <em ref={node => (this.nodesRef = node)}>{this.state.nodes}</em>
-            <span>Nodes</span>
-          </Metric>
+        {showMetrics && (
+          <Metrics>
+            <Metric>
+              <em>{this.props.items.length}</em>
+              <span>Items</span>
+            </Metric>
+            <Metric>
+              <em ref={node => (this.scaleRef = node)}>-</em>
+              <span>Visible</span>
+            </Metric>
+            <Metric>
+              <em ref={node => (this.nodesRef = node)}>{this.state.nodes}</em>
+              <span>Nodes</span>
+            </Metric>
 
-          {/* <FPS>
+            {/* <FPS>
             {fps => (
               <Metric>
                 <em>{fps}</em>
@@ -886,7 +915,8 @@ export default class Masonry extends React.PureComponent {
               </Metric>
             )}
           </FPS> */}
-        </Metrics>
+          </Metrics>
+        )}
         {hasMore && isLoading && loadingElement}
         {isDone && (
           <footer

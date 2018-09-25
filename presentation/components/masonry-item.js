@@ -1,5 +1,5 @@
 import React from "react";
-import styled, { keyframes } from "react-emotion";
+import styled, { css, keyframes } from "react-emotion";
 
 const Container = styled("div")`
   transition: all 150ms ease-in-out;
@@ -24,6 +24,17 @@ const Container = styled("div")`
     max-width: 100%;
     max-height: 100%;
   }
+
+    ${({ isOutOfViewport }) =>
+    isOutOfViewport &&
+      css`
+        opacity: 0.15 !important;
+        div {
+          filter: grayscale(100%);
+          animation: none;
+        }
+      `};
+  }
 `;
 
 const FADE_IN = keyframes`
@@ -46,7 +57,7 @@ const Image = styled("div")`
   z-index: 2;
   opacity: 0;
   transition: opacity 150ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  animation: ${FADE_IN} 1s 1 ease-in;
+  animation: ${FADE_IN} 150ms 1 ease-in;
   animation-fill-mode: forwards;
 
   ${({ src }) => `
@@ -56,10 +67,14 @@ const Image = styled("div")`
 
 export default class MasonryItem extends React.Component {
   static getColumnSpanFromProps = ({
-    props: { featured },
+    props: { featured, shouldSpanColumns },
     index,
     maxColumns
   }) => {
+    if (!shouldSpanColumns) {
+      return 1;
+    }
+
     if (featured) {
       return 3;
     }
@@ -96,7 +111,7 @@ export default class MasonryItem extends React.Component {
       imageWidth,
       imageHeight,
       imageColor,
-
+      hasRenderedBefore,
       isFit,
       ...otherProps
     } = this.props;
@@ -105,9 +120,10 @@ export default class MasonryItem extends React.Component {
       <Container
         preloadImageSrc={thumbUrl}
         imageColor={imageColor}
+        isOutOfViewport
         {...otherProps}
       >
-        <Image src={imageUrl} />
+        <Image src={imageUrl} hasRenderedBefore={hasRenderedBefore} />
       </Container>
     );
   }

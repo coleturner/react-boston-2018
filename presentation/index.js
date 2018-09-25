@@ -8,15 +8,16 @@ import {
   Heading,
   Layout,
   Fill,
-  ListItem,
-  List,
+  Fit,
   Slide,
   S,
-  Text
+  Text,
+  List,
+  ListItem
 } from "spectacle";
 
 import CodeSlide from "spectacle-code-slide";
-import Bottlenecks from "./components/bottlenecks";
+import Jeopardy from "./components/jeopardy";
 
 // Import theme
 import createTheme from "spectacle/lib/themes/default";
@@ -116,6 +117,21 @@ export default class Presentation extends React.Component {
           </Text>
         </Slide>
 
+        <Slide
+          transition={["fade"]}
+          bgColor="stage"
+          notes={`
+        Introduce yourself.<br />
+        <hr />
+        Why are you talking today?<br />
+        <hr />
+        Why should anyone listen?
+
+        `}
+        >
+          <About />
+        </Slide>
+
         {/* Demonstrating design bloat */}
         <Slide
           maxHeight={1400}
@@ -128,6 +144,7 @@ export default class Presentation extends React.Component {
           `}
         >
           <MasonryExample
+            autoscroll
             columns={8}
             nextSlide={7}
             initialItemCount={500}
@@ -160,21 +177,6 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           notes={`
-        Introduce yourself.<br />
-        <hr />
-        Why are you talking today?<br />
-        <hr />
-        Why should anyone listen?
-
-        `}
-        >
-          <About />
-        </Slide>
-
-        <Slide
-          transition={["fade"]}
-          bgColor="stage"
-          notes={`
           The word observed is important.
           <br/>
           Developers have powerful machines. We see the web as we designed it.
@@ -194,6 +196,7 @@ export default class Presentation extends React.Component {
           notes={`
           The word observed is important.
           <br/>
+
           Developers have powerful machines. We see the web as we designed it.
         `}
         >
@@ -216,50 +219,64 @@ export default class Presentation extends React.Component {
           But we also abused it by rendering everything.
         `}
         >
-          <Bottlenecks index={0} />
+          <Jeopardy index={0} />
         </Slide>
-        <Slide
-          transition={["fade"]}
-          bgColor="primary"
-          textColor="body"
-          notes={`
-          To fix the layout thrashing I needed to reduce the number of DOM mutations
-          `}
-        >
-          <Bottlenecks index={1} />
-        </Slide>
-        <Slide
-          transition={["fade"]}
-          bgColor="primary"
-          textColor="body"
-          notes={`
-          But to do that, the elements have to be positioned absolutely and calculated before they render.
-          `}
-        >
-          <Bottlenecks index={2} />
-        </Slide>
-        <Slide
-          transition={["fade"]}
-          bgColor="primary"
-          textColor="body"
-          notes={`
-          Which meant I needed to know the width and height beforehand. So we set static column widths and calculated the height from the image's aspect ratio.
-          But that was only enough to delay the crashing. After so many thousand DOM nodes the browser will lock up and the page will still crash.
-          `}
-        >
-          <Bottlenecks index={3} />
-        </Slide>
-        <Slide
-          transition={["fade"]}
-          bgColor="primary"
-          textColor="body"
-          notes={`
-          
-            The answer was virtual rendering. Instead of rendering all the items on the page, we would render only what's visible in the viewport to drastically cut down the number of DOM nodes.
 
+        <Slide
+          maxHeight={1400}
+          transition={["fade"]}
+          bgColor="stage"
+          className="full-width-slide"
+          notes={`
+          Needed to render many items with different sizes. Use infinite scroll to keep the user hooked.
+          Our observations in development were smooth.
           `}
         >
-          <Bottlenecks index={4} />
+          <MasonryExample
+            showMetrics
+            autoscroll
+            maxColumns={8}
+            columns={8}
+            initialItemCount={500}
+            threshold={100000000}
+          />
+        </Slide>
+
+        <Slide transition={["fade"]} bgColor="primary" textColor="secondary">
+          <Heading size={1} textColor="focus" caps>
+            Render Less!
+          </Heading>
+          <br />
+          <Appear>
+            <img
+              src={require("../assets/he-said-it.png")}
+              alt="Peter from Family Guy pointing to a movie screen, saying 'He said it!'"
+            />
+          </Appear>
+        </Slide>
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+          1299 nodes:
+          - floats: 14ms
+          - flexbox: 3.5ms
+        `}
+        >
+          <Heading size={1} textColor="focus" caps fit>
+            How to: Render Less
+          </Heading>
+          <List>
+            <ListItem>Rendering the viewport area only</ListItem>
+            <ListItem>Minimize style calculations</ListItem>
+            <ListItem>Avoiding layout thrashing</ListItem>
+          </List>
+        </Slide>
+        <Slide transition={["fade"]} bgColor="primary" textColor="body">
+          <Heading size={1} textColor="secondary" caps fit>
+            Virtualized Rendering
+          </Heading>
         </Slide>
 
         {/* Demonstrating best design */}
@@ -275,29 +292,85 @@ export default class Presentation extends React.Component {
         `}
         >
           <MasonryExample
+            fakeViewport={200}
+            autoscroll
             maxColumns={8}
             columns={8}
             maxImages={5000}
             throttle={150}
+            threshold={100}
             initialItemCount={2000}
+            shouldSpanColumns={false}
           />
         </Slide>
-        <Slide transition={["fade"]} bgColor="primary" textColor="secondary">
-          <Layout>
-            <Fill>
-              <Heading size={1} textColor="secondary" fit caps>
-                Render Less:
-              </Heading>
+        <Slide
+          maxHeight={12400}
+          transition={["fade"]}
+          bgColor="stage"
+          className="full-width-slide"
+          notes={`
+          
+          This way our users could observe the same beautiful experience as we designed it, whether they had a desktop, tablet or mobile device.
 
-              <List textColor="body">
-                <ListItem>Minimize layout thrashing</ListItem>
-                <ListItem>Use progressive enhancement, skeleton UI</ListItem>
-                <ListItem>
-                  Virtual rendering: react-window / react-virtualized
-                </ListItem>
-              </List>
-            </Fill>
-          </Layout>
+        `}
+        >
+          <MasonryExample
+            showMetrics
+            autoscroll
+            maxColumns={8}
+            columns={15}
+            maxImages={5000}
+            throttle={150}
+            threshold={100}
+            initialItemCount={2000}
+            shouldSpanColumns={false}
+          />
+        </Slide>
+        <Slide
+          maxHeight={12400}
+          transition={["fade"]}
+          bgColor="stage"
+          className="full-width-slide"
+          notes={`
+          
+          This way our users could observe the same beautiful experience as we designed it, whether they had a desktop, tablet or mobile device.
+
+        `}
+        >
+          <MasonryExample
+            showMetrics
+            maxColumns={8}
+            columns={30}
+            maxImages={5000}
+            maxItemsPerPage={10}
+            throttle={150}
+            threshold={100}
+            initialItemCount={2000}
+            shouldSpanColumns={false}
+          />
+        </Slide>
+        <Slide transition={["fade"]} bgColor="primary" textColor="body">
+          <Heading>☝️</Heading>
+          <center>
+            <List
+              style={{
+                display: "inline-block",
+                listStyleType: "none",
+                padding: 0,
+                textAlign: "center"
+              }}
+            >
+              <Appear>
+                <ListItem>Render less things, fewer times</ListItem>
+              </Appear>
+              <Appear>
+                <ListItem>Avoid layout thrashing</ListItem>
+              </Appear>
+              <Appear>
+                <ListItem>Test low-end devices</ListItem>
+              </Appear>
+            </List>
+          </center>
         </Slide>
         <Slide transition={["fade"]} bgColor="focus" textColor="primary">
           <Heading size={1} caps textColor="primary" fit>
@@ -326,8 +399,20 @@ export default class Presentation extends React.Component {
               </a>
             </ListItem>
           </List>
-          <hr />
-          <a href="https://goo.gl/ogCwKA">https://goo.gl/ogCwKA</a>
+          <hr style={{ margin: "3em auto" }} />
+          <Heading size={6} caps textColor="subtitle">
+            For more pictures of dogs follow
+          </Heading>
+
+          <Heading size={6} caps textColor="twitter">
+            <a
+              style={{ textDecoration: "none" }}
+              href="https://twitter.com/coleturner"
+            >
+              @coleturner
+            </a>{" "}
+            on Twitter
+          </Heading>
         </Slide>
       </Deck>
     );
