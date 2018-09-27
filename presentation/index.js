@@ -6,29 +6,32 @@ import {
   Appear,
   Deck,
   Heading,
-  Layout,
-  Fill,
-  Fit,
-  Slide,
-  S,
+  Slide as SpectacleSlide,
   Text,
   List,
   ListItem
 } from "spectacle";
 
-import CodeSlide from "spectacle-code-slide";
 import Jeopardy from "./components/jeopardy";
 
 // Import theme
 import createTheme from "spectacle/lib/themes/default";
 
 import About from "./about";
-import Exposition from "./exposition";
 import MasonryExample from "./masonry-example";
 
 import CRASH_URL from "../assets/crash.png";
 
-import styled, { injectGlobal } from "react-emotion";
+import { injectGlobal } from "react-emotion";
+
+export const SlideContext = React.createContext();
+const Slide = function ({ children, ...props }) {
+  return (
+    <SpectacleSlide {...props}>
+      <SlideContext.Provider value={props}>{children}</SlideContext.Provider>
+    </SpectacleSlide>
+  );
+};
 
 // Require CSS
 require("normalize.css");
@@ -121,11 +124,7 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           notes={`
-        Introduce yourself.<br />
-        <hr />
-        Why are you talking today?<br />
-        <hr />
-        Why should anyone listen?
+        Talk about how performance is important to the needs for Streaming and Finance.
 
         `}
         >
@@ -139,8 +138,13 @@ export default class Presentation extends React.Component {
           bgColor="stage"
           className="full-width-slide"
           notes={`
-          Needed to render many items with different sizes. Use infinite scroll to keep the user hooked.
-          Our observations in development were smooth.
+          I love dogs.
+          <hr />
+          Describe the layout.
+          <hr />
+          Describe infinite scroll.
+          <hr />
+          It was beautiful and worked fast.
           `}
         >
           <MasonryExample
@@ -158,7 +162,14 @@ export default class Presentation extends React.Component {
           bgColor="stage"
           className="full-width-slide"
           notes={`
-            In production our users observed their browsers crashing after a couple pages. If your website crashes, that's game over.
+            It crashed for the users after three pages.
+            <hr />
+            Describe low end devices.
+            <hr />
+            Describe why crashes are bad.
+            <hr />
+            <em>Transition: That's why I'm here today...</em>
+
           `}
         >
           <img
@@ -177,9 +188,10 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           notes={`
-          The word observed is important.
-          <br/>
-          Developers have powerful machines. We see the web as we designed it.
+          Developers worry too much about:<br />
+          Re-renders<br />
+          State changes<br />
+          shouldComponentUpdate
         `}
         >
           <Heading size={1} caps textColor="accent" fit>
@@ -194,10 +206,10 @@ export default class Presentation extends React.Component {
           transition={["fade"]}
           bgColor="stage"
           notes={`
-          The word observed is important.
-          <br/>
-
-          Developers have powerful machines. We see the web as we designed it.
+          But not enough about:<br />
+          How much are we rendering?<br />
+          What can the user see?<br />
+          What is accessible?
         `}
         >
           <Heading size={1} caps textColor="accent" fit>
@@ -213,13 +225,79 @@ export default class Presentation extends React.Component {
           bgColor="primary"
           textColor="body"
           notes={`
-          The library we were using had a cascading bottlenecks.
-          Excessive DOM mutations because dynamic positioning.
-          Dynamic positioning because variable element sizes.
-          But we also abused it by rendering everything.
-        `}
+            Introduce the game.
+            <hr />
+            <em>Next reveal: DOM MUTATIONS</em>
+          `}
         >
           <Jeopardy index={0} />
+        </Slide>
+
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+            DOM Mutations are expensive because:<br />
+            React has to diff the virtual DOM<br />
+            Synchronise the new DOM Tree<br />
+            Inject and remove DOM nodes<br />
+            <hr />
+            <em>Next reveal: Style Calculations</em>
+          `}
+        >
+          <Jeopardy index={1} />
+        </Slide>
+
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+            Style calculations are expensive because:<br />
+            Browser has to calculate the box model<br />
+            Paint the element<br />
+            Position it<br />
+            <hr />
+            Most of layout lag is observed here.
+            <hr />
+            <em>Next reveal: Layout Thrashing</em>
+          `}
+        >
+          <Jeopardy index={2} />
+        </Slide>
+
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+            Describe layout thrashing...
+            <hr />
+            A tornado of DOM mutations and style calculations. Causes many reflow and layout.
+            <hr />
+            Can crash the browser.
+
+            <hr />
+            <em>Next reveal: Render all the things</em>
+          `}
+        >
+          <Jeopardy index={3} />
+        </Slide>
+
+        <Slide
+          transition={["fade"]}
+          bgColor="primary"
+          textColor="body"
+          notes={`
+            Describe compound effect of thrashing everything.
+            <hr/>
+            Make Jeopardy Joke
+            <hr />
+            <em>Next reveal: back to the dog app</em>
+          `}
+        >
+          <Jeopardy index={4} />
         </Slide>
 
         <Slide
@@ -228,8 +306,7 @@ export default class Presentation extends React.Component {
           bgColor="stage"
           className="full-width-slide"
           notes={`
-          Needed to render many items with different sizes. Use infinite scroll to keep the user hooked.
-          Our observations in development were smooth.
+            Describe nodes/visible/nodes
           `}
         >
           <MasonryExample
@@ -259,24 +336,38 @@ export default class Presentation extends React.Component {
           bgColor="primary"
           textColor="body"
           notes={`
-          1299 nodes:
-          - floats: 14ms
-          - flexbox: 3.5ms
+          State the obvious: create less elements<hr />
+          Describe why the viewport area matters<hr />
+          Minimize style calculations:<br />
+          optimizing animations, transitions
+          <hr />
+          Avoid layout trashing: repaints, flow, throttle DOM Mutations
         `}
         >
           <Heading size={1} textColor="focus" caps fit>
             How to: Render Less
           </Heading>
           <List>
-            <ListItem>Rendering the viewport area only</ListItem>
-            <ListItem>Minimize style calculations</ListItem>
-            <ListItem>Avoiding layout thrashing</ListItem>
+            <Appear>
+              <ListItem>Rendering the viewport area only</ListItem>
+            </Appear>
+            <Appear>
+              <ListItem>Minimize style calculations</ListItem>
+            </Appear>
+            <Appear>
+              <ListItem>Avoiding layout thrashing</ListItem>
+            </Appear>
           </List>
         </Slide>
         <Slide transition={["fade"]} bgColor="primary" textColor="body">
           <Heading size={1} textColor="secondary" caps fit>
             Virtualized Rendering
           </Heading>
+          <Appear>
+            <Heading size={6} fit textColor="body">
+              react-window / react-virtualized
+            </Heading>
+          </Appear>
         </Slide>
 
         {/* Demonstrating best design */}
@@ -286,16 +377,18 @@ export default class Presentation extends React.Component {
           bgColor="stage"
           className="full-width-slide"
           notes={`
-          
-          This way our users could observe the same beautiful experience as we designed it, whether they had a desktop, tablet or mobile device.
-
+            Here is our viewport<br />
+            As elements approach it, they are rendered<br />
+            <hr />
+            Minimize amount of elements to calculate and paint.<br />
+            <hr />
+            Margin for scrolling, enough time for the browser to paint<br />
         `}
         >
           <MasonryExample
-            fakeViewport={200}
+            fakeViewport={300}
             autoscroll
-            maxColumns={8}
-            columns={8}
+            columns={12}
             maxImages={5000}
             throttle={150}
             threshold={100}
@@ -309,9 +402,11 @@ export default class Presentation extends React.Component {
           bgColor="stage"
           className="full-width-slide"
           notes={`
-          
-          This way our users could observe the same beautiful experience as we designed it, whether they had a desktop, tablet or mobile device.
-
+            The user sees it as we designed it.
+            <hr />
+            Fast and beautiful
+            <hr />
+            <em>Transition: Now I know what you're thinking. We can fit twice as many dogs.</em>
         `}
         >
           <MasonryExample
@@ -323,6 +418,7 @@ export default class Presentation extends React.Component {
             throttle={150}
             threshold={100}
             initialItemCount={2000}
+            columnGutter={2}
             shouldSpanColumns={false}
           />
         </Slide>
@@ -332,10 +428,8 @@ export default class Presentation extends React.Component {
           bgColor="stage"
           className="full-width-slide"
           notes={`
-          
-          This way our users could observe the same beautiful experience as we designed it, whether they had a desktop, tablet or mobile device.
-
-        `}
+            The users are happy. The dogs are happy. That makes me happy.
+          `}
         >
           <MasonryExample
             showMetrics
@@ -346,6 +440,7 @@ export default class Presentation extends React.Component {
             throttle={150}
             threshold={100}
             initialItemCount={2000}
+            columnGutter={1}
             shouldSpanColumns={false}
           />
         </Slide>

@@ -76,13 +76,12 @@ const Metric = styled("div")`
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   align-content: center;
   pointer-events: none;
   color: ${({ color }) => color || "#ffed58"};
 
   > * {
-    flex: 0 1 50%;
     text-align: center;
   }
 
@@ -92,6 +91,10 @@ const Metric = styled("div")`
     line-height: 1;
     font-style: normal;
     min-width: 3em;
+  }
+
+  span {
+    white-space: nowrap;
   }
 `;
 
@@ -740,7 +743,6 @@ export default class Masonry extends React.PureComponent {
   isPageVisible({ page, top, viewableHeight }) {
     const { start, stop } = page;
     const extraThreshold = this.getThreshold() * Math.abs(this.scrollSpeed);
-    console.log("extraThreshold", extraThreshold);
 
     const startsBeforeViewableArea = start <= top + extraThreshold;
     const stopsAfterViewableArea = stop > top + viewableHeight + extraThreshold;
@@ -881,8 +883,7 @@ export default class Masonry extends React.PureComponent {
                         isOutOfViewport={
                           fakeViewport &&
                           (top + height < scrollTop + fakeViewport ||
-                            top >
-                              scrollTop + viewableHeight - (fakeViewport / 2))
+                            top > scrollTop + viewableHeight - fakeViewport / 2)
                         }
                       />
                     );
@@ -896,15 +897,15 @@ export default class Masonry extends React.PureComponent {
           <Metrics>
             <Metric>
               <em>{this.props.items.length}</em>
-              <span>Items</span>
+              <span>Dogs</span>
+            </Metric>
+            <Metric>
+              <em ref={node => (this.nodesRef = node)}>{this.state.nodes}</em>
+              <span>DOM Nodes</span>
             </Metric>
             <Metric>
               <em ref={node => (this.scaleRef = node)}>-</em>
               <span>Visible</span>
-            </Metric>
-            <Metric>
-              <em ref={node => (this.nodesRef = node)}>{this.state.nodes}</em>
-              <span>Nodes</span>
             </Metric>
 
             {/* <FPS>

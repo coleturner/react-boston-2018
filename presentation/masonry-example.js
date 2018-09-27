@@ -1,9 +1,10 @@
 import React from "react";
 import styled from "react-emotion";
-import { GoToAction, S } from "spectacle";
+import { GoToAction } from "spectacle";
 
 import Masonry from "./components/masonry";
 import MasonryItem from "./components/masonry-item";
+import { SlideContext } from "./index";
 
 const shuffle = input => {
   let ctr = input.length;
@@ -41,12 +42,13 @@ const FakeViewport = styled("div")`
 
 const preloadedImages = {};
 
-export default class MasonryExample extends React.Component {
+export class MasonryExample extends React.Component {
   static defaultProps = {
     columns: 3,
     maxImages: 500,
     initialItemCount: 100,
-    shouldSpanColumns: true
+    shouldSpanColumns: true,
+    columnGutter: 10
   };
 
   constructor(props) {
@@ -71,6 +73,10 @@ export default class MasonryExample extends React.Component {
   }
 
   componentDidMount() {
+    if (this.props.appearOff) {
+      return;
+    }
+
     if (this.props.autoscroll) {
       requestAnimationFrame(this.tick);
     }
@@ -169,6 +175,7 @@ export default class MasonryExample extends React.Component {
       nextSlide,
       shouldSpanColumns,
       fakeViewport,
+      columnGutter,
       ...otherProps
     } = this.props;
     const { images } = this.state;
@@ -178,7 +185,6 @@ export default class MasonryExample extends React.Component {
       ...n
     }));
 
-    const columnGutter = 10;
     const columnWidth = Math.floor(
       parseInt(window.innerWidth, 10) / columns - columnGutter
     );
@@ -225,4 +231,23 @@ export default class MasonryExample extends React.Component {
       </Container>
     );
   }
+}
+
+export default function MasonryExampleHoC(props) {
+  return (
+    <SlideContext.Consumer>
+      {({ appearOff, presenter }) =>
+        appearOff ? (
+          <div style={{ background: "#fff", color: "red" }}>
+            Masonry will render next slide
+          </div>
+        ) : (
+          <MasonryExample
+            {...props}
+            autoscroll={presenter ? false : props.autoscroll}
+          />
+        )
+      }
+    </SlideContext.Consumer>
+  );
 }
