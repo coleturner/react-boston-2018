@@ -31,7 +31,8 @@ const Container = styled("div")`
 `;
 
 const FakeViewport = styled("div")`
-  border: ${({ size }) => size}px solid rgba(0, 0, 0, 0.65);
+  border: 100px solid rgba(0, 0, 0, 0.65);
+  border-width: ${({ size }) => Math.min(window.innerHeight * 0.25, size)}px;
   box-shadow: inset 0 0 0 3px #fff;
   position: absolute;
   top: 0;
