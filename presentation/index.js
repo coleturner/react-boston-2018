@@ -131,7 +131,6 @@ export default class Presentation extends React.Component {
           <About />
         </Slide>
 
-        {/* Demonstrating design bloat */}
         <Slide
           maxHeight={1400}
           transition={["fade"]}

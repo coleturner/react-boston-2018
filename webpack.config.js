@@ -58,8 +58,13 @@ module.exports = {
         include: path.join(__dirname, "assets")
       },
       {
-        test: /\.mp3$/,
+        test: /\.(mp3)$/,
         loader: "file-loader",
+        include: path.join(__dirname, "assets")
+      },
+      {
+        test: /\.mp4$/,
+        loader: "file-loader?mimetype=video/mp4",
         include: path.join(__dirname, "assets")
       }
     ]
